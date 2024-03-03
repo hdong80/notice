@@ -59,6 +59,11 @@
       height: auto;
     }
   }
+  @media print {
+  .notice-block {
+    page-break-inside: avoid; /* 페이지 안에서의 분할을 방지 */
+  }
+}
 </style>
 </head>
 <body>
