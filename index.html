@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘의 공지사항</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    text-align: center; /* 가운데 정렬 */
+  }
+  .notice-block {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 가운데 정렬 */
+    margin-bottom: 10px;
+  }
+  .notice-number {
+    margin-right: 10px;
+    padding: 10px;
+    border: 2px solid #000;
+    border-radius: 10px;
+    font-weight: bold;
+  }
+  .notice-content {
+    flex: 1;
+    padding: 20px;
+    border: 2px solid #FFD700;
+    border-radius: 10px;
+    text-align: left; /* 왼쪽 정렬 */
+  }
+  #date {
+    margin-bottom: 20px;
+  }
+  #print-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+</style>
+</head>
+<body>
+<h1>2학년 오늘의 공지사항</h1>
+<p id="date"></p>
+<div id="notice"></div>
+<button id="print-button">출력</button>
+
+<script>
+  async function fetchSheetData() {
+    const sheetId = '1wsg1cQgwqJ0qlILEt7KIeSutThwstAXlX2oHLBbYg8o';
+    const apiKey = 'AIzaSyDrClgUbT-0cFoYe4W81dyxikZVbjVlcT8'; // 사용할 구글 Sheets API 키
+    const range = 'Sheet1!A:B'; // 가져올 시트의 범위
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.values && data.values.length > 0) {
+        const notices = data.values.filter(row => row[1]); // 비어있지 않은 공지만 필터링
+        if (notices.length > 0) {
+          const noticeHtml = notices.map((row, index) => {
+            const noticeBlockHtml = `<div class="notice-block">
+                                       <div class="notice-number">${index + 1}</div>
+                                       <div class="notice-content">${row[1]}</div>
+                                     </div>`;
+            return noticeBlockHtml;
+          }).join('');
+          document.getElementById('notice').innerHTML = noticeHtml;
+        } else {
+          document.getElementById('notice').innerHTML = '오늘은 공지사항이 없습니다.';
+        }
+      } else {
+        document.getElementById('notice').innerHTML = '오늘은 공지사항이 없습니다.';
+      }
+
+      const today = new Date();
+      const formattedDate = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 (${getDayOfWeek(today)})`;
+      document.getElementById('date').textContent = '오늘 날짜: ' + formattedDate; // 오늘의 날짜 표시
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      document.getElementById('notice').innerHTML = '데이터를 가져오는 중 오류가 발생했습니다.';
+    }
+  }
+
+  fetchSheetData();
+
+  // 출력 버튼 클릭 시 프린트
+  document.getElementById('print-button').addEventListener('click', function() {
+    window.print();
+  });
+
+  // 요일 반환 함수
+  function getDayOfWeek(date) {
+    const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+    return daysOfWeek[date.getDay()];
+  }
+</script>
+</body>
+</html>
