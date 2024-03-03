@@ -43,6 +43,22 @@
     cursor: pointer;
     border-radius: 5px;
   }
+
+  /* 모바일에서 이미지 최적화 */
+  @media screen and (max-width: 600px) {
+    .notice-content img {
+      max-width: 100%;
+      height: auto;
+    }
+  }
+
+  /* 인쇄 시 이미지 최적화 */
+  @media print {
+    .notice-content img {
+      max-width: 100%;
+      height: auto;
+    }
+  }
 </style>
 </head>
 <body>
