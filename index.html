@@ -8,12 +8,12 @@
   body {
     font-family: Arial, sans-serif;
     margin: 20px;
-    text-align: center; /* 가운데 정렬 */
+    text-align: center;
   }
   .notice-block {
     margin-bottom: 10px;
     display: flex;
-    align-items: flex-start; /* 순번 박스를 위쪽에 정렬 */
+    align-items: flex-start;
   }
   .notice-number {
     margin-right: 10px;
@@ -27,8 +27,17 @@
     padding: 20px;
     border: 2px solid #FFD700;
     border-radius: 10px;
-    text-align: left; /* 왼쪽 정렬 */
-    white-space: pre-wrap; /* 줄 바꿈 유지 */
+    text-align: left;
+    white-space: pre-wrap;
+  }
+  .notice-content.lookup {
+    background-color: #E0FFFF; /* 매우 연한 하늘색 */
+  }
+  .notice-content.closing {
+    background-color: #FFB6C1; /* 매우 연한 분홍색 */
+  }
+  .notice-content.weekly {
+    background-color: #FFFACD; /* 매우 연한 노란색 */
   }
   #date {
     margin-bottom: 20px;
@@ -53,11 +62,11 @@
   @media print {
     .notice-content img {
       max-width: 100%;
-      max-height: 95vh; /* 이미지의 최대 높이를 조정 */
-      page-break-inside: avoid; /* 이미지 내에서 페이지 분할 방지 */
+      max-height: 95vh;
+      page-break-inside: avoid;
     }
     .notice-block {
-      page-break-inside: avoid; /* 공지사항 내에서 페이지 분할 방지 */
+      page-break-inside: avoid;
     }
   }
 </style>
@@ -82,9 +91,17 @@
       if (data.values && data.values.length > 0) {
         const noticeHtml = data.values.map((row, index) => {
           const content = row[1] ? (row[1].startsWith('http') ? `<img src="${row[1]}" alt="이미지">` : row[1]) : '';
+          let className = 'notice-content';
+          if (content.includes('(조회)')) {
+            className += ' lookup';
+          } else if (content.includes('(종례)')) {
+            className += ' closing';
+          } else if (content.includes('(주간공지)')) {
+            className += ' weekly';
+          }
           return `<div class="notice-block">
                     <div class="notice-number">${index + 1}</div>
-                    <div class="notice-content">${content}</div>
+                    <div class="${className}">${content}</div>
                   </div>`;
         }).join('');
         document.getElementById('notice').innerHTML = noticeHtml;
