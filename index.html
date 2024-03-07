@@ -59,6 +59,9 @@
   #category-buttons button {
     margin-right: 10px;
   }
+  #date-selection {
+    margin-bottom: 20px;
+  }
 
   @media screen and (max-width: 600px) {
     .notice-content img {
@@ -81,6 +84,13 @@
 </head>
 <body>
 <h1>2학년 오늘의 공지사항</h1>
+<div id="date-selection">
+  <label for="date-picker">날짜 선택:</label>
+  <select id="date-picker">
+    <option value="today">오늘</option>
+    <option value="yesterday">어제</option>
+  </select>
+</div>
 <div id="category-buttons">
   <button onclick="showCategory('all')">전체 다 보기</button>
   <button onclick="showCategory('lookup')">조회만 보기</button>
@@ -91,10 +101,17 @@
 <button id="print-button">출력</button>
 
 <script>
-  async function fetchSheetData() {
-    const sheetId = '1wsg1cQgwqJ0qlILEt7KIeSutThwstAXlX2oHLBbYg8o';
-    const apiKey = 'AIzaSyDrClgUbT-0cFoYe4W81dyxikZVbjVlcT8';
-    const range = 'Sheet1!A:B';
+  async function fetchSheetData(date) {
+    let sheetName;
+    if (date === 'yesterday') {
+        sheetName = 'Sheet2'; // 어제의 시트 이름으로 변경
+    } else {
+        sheetName = 'Sheet1'; // 오늘의 시트 이름
+    }
+
+    const sheetId = '1wsg1cQgwqJ0qlILEt7KIeSutThwstAXlX2oHLBbYg8o'; // 시트 ID
+    const apiKey = 'AIzaSyDrClgUbT-0cFoYe4W81dyxikZVbjVlcT8'; // Google Sheets API 키
+    const range = `${sheetName}!A:B`;
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
 
     try {
@@ -121,18 +138,31 @@
         }).join('');
         document.getElementById('notice').innerHTML = noticeHtml;
       } else {
-        document.getElementById('notice').innerHTML = '오늘은 공지사항이 없습니다.';
+        document.getElementById('notice').innerHTML = '해당 날짜에 공지사항이 없습니다.';
       }
 
-      const today = new Date().toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-      document.getElementById('date').textContent = today;
+      document.getElementById('date').textContent = `${date === 'today' ? '오늘' : '어제'}의 공지사항`;
     } catch (error) {
       console.error('Error fetching data:', error);
       document.getElementById('notice').innerHTML = '데이터를 가져오는 중 오류가 발생했습니다.';
     }
   }
 
-  fetchSheetData();
+  function getYesterdaySheetName() {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const month = String(yesterday.getMonth() + 1).padStart(2, '0');
+    const day = String(yesterday.getDate()).padStart(2, '0');
+    return `${month}/${day}`;
+  }
+
+  document.getElementById('date-picker').addEventListener('change', function() {
+    const selectedDate = this.value;
+    fetchSheetData(selectedDate);
+  });
+
+  fetchSheetData('today');
 
   document.getElementById('print-button').addEventListener('click', function() {
     window.print();
