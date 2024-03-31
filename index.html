@@ -199,7 +199,7 @@
   });
 
   async function copyContent() {
-    const copyText = document.querySelector('html');
+    const copyText = document.querySelector('html').cloneNode(true);
     const selection = window.getSelection();
     const range = document.createRange();
     range.selectNodeContents(copyText);
@@ -208,21 +208,6 @@
     document.execCommand('copy');
     selection.removeAllRanges();
     alert('전체 내용이 클립보드에 복사되었습니다.');
-
-    // 이미지 링크 복사
-    const images = document.querySelectorAll('.notice-content img');
-    if (images.length > 0) {
-        let imageLinks = '';
-        for (let i = 0; i < images.length; i++) {
-            const imageUrl = images[i].src;
-            imageLinks += imageUrl + '\n';
-        }
-        navigator.clipboard.writeText(imageLinks).then(() => {
-            console.log('이미지 링크가 클립보드에 복사되었습니다.');
-        }).catch(err => {
-            console.error('이미지 링크 복사 중 오류가 발생했습니다:', err);
-        });
-    }
   }
 
   function showCategory(category) {
