@@ -174,15 +174,6 @@
     }
   }
 
-  function getYesterdaySheetName() {
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    const month = String(yesterday.getMonth() + 1).padStart(2, '0');
-    const day = String(yesterday.getDate()).padStart(2, '0');
-    return `${month}/${day}`;
-  }
-
   document.getElementById('date-picker').addEventListener('change', function() {
     const selectedDate = this.value;
     fetchSheetData(selectedDate);
@@ -199,14 +190,29 @@
   });
 
   async function copyContent() {
-    const copyText = document.querySelector('html').cloneNode(true);
-    const selection = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(copyText);
-    selection.removeAllRanges();
-    selection.addRange(range);
+    let finalText = '';
+    const noticeBlocks = document.querySelectorAll('.notice-block');
+    noticeBlocks.forEach(block => {
+      const noticeContent = block.querySelector('.notice-content');
+      const image = noticeContent.querySelector('img');
+      const textContent = noticeContent.textContent.trim();
+
+      let contentText = textContent;
+      if (image) {
+        const imageUrl = image.src;
+        contentText += `\n이미지 URL: ${imageUrl}`; // 이미지가 있을 경우, 텍스트 내용 끝에 이미지 URL을 추가합니다.
+      }
+
+      finalText += contentText + '\n\n'; // 각 공지사항 사이에 두 줄 공백을 추가합니다.
+    });
+
+    const textarea = document.createElement('textarea');
+    textarea.value = finalText;
+    document.body.appendChild(textarea);
+    textarea.select();
     document.execCommand('copy');
-    selection.removeAllRanges();
+    document.body.removeChild(textarea);
+
     alert('전체 내용이 클립보드에 복사되었습니다.');
   }
 
