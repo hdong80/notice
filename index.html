@@ -144,14 +144,16 @@
           if (content.includes('(종례)')) {
             className += ' closing';
           }
-          let downloadButton = '';
+          let imageButtons = '';
           if (row[1] && row[1].startsWith('http')) {
-            downloadButton = `<button class="download-button button" onclick="downloadImage(this)">이미지 다운로드</button>`;
+            imageButtons = `<div>
+                              <button class="view-image-button button" onclick="viewImage(this)">이미지 크게 보기</button>
+                              <a class="download-button button" onclick="downloadImage(this)" download>이미지 다운로드</a>
+                            </div>`;
           }
           return `<div class="notice-block">
                     <div class="notice-number">${index + 1}</div>
-                    <div class="${className}">${content}</div>
-                    ${downloadButton}
+                    <div class="${className}">${content}${imageButtons}</div>
                   </div>`;
         }).join('');
         document.getElementById('notice').innerHTML = noticeHtml;
@@ -213,8 +215,18 @@
     });
   }
 
+  function viewImage(button) {
+    const noticeContent = button.parentElement.parentElement;
+    const image = noticeContent.querySelector('img');
+    if (image) {
+      window.open(image.src, '_blank');
+    } else {
+      alert('이미지가 없습니다.');
+    }
+  }
+
   function downloadImage(button) {
-    const noticeContent = button.parentElement.querySelector('.notice-content');
+    const noticeContent = button.parentElement.parentElement;
     const image = noticeContent.querySelector('img');
     if (image) {
       const imageUrl = image.src;
