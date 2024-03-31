@@ -144,10 +144,14 @@
           if (content.includes('(종례)')) {
             className += ' closing';
           }
+          let downloadButton = '';
+          if (row[1] && row[1].startsWith('http')) {
+            downloadButton = `<button class="download-button button" onclick="downloadImage(this)">이미지 다운로드</button>`;
+          }
           return `<div class="notice-block">
                     <div class="notice-number">${index + 1}</div>
                     <div class="${className}">${content}</div>
-                    <button class="download-button button" onclick="downloadImage(this)">이미지 다운로드</button>
+                    ${downloadButton}
                   </div>`;
         }).join('');
         document.getElementById('notice').innerHTML = noticeHtml;
