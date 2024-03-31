@@ -195,6 +195,10 @@
   });
 
   document.getElementById('copy-button').addEventListener('click', function() {
+    copyContent();
+  });
+
+  async function copyContent() {
     const copyText = document.querySelector('html');
     const selection = window.getSelection();
     const range = document.createRange();
@@ -204,7 +208,28 @@
     document.execCommand('copy');
     selection.removeAllRanges();
     alert('전체 내용이 클립보드에 복사되었습니다.');
-  });
+
+    // 이미지 복사
+    const images = document.querySelectorAll('.notice-content img');
+    if (images.length > 0) {
+        for (let i = 0; i < images.length; i++) {
+            const imageUrl = images[i].src;
+            await copyImageToClipboard(imageUrl);
+        }
+    }
+  }
+
+  async function copyImageToClipboard(imageUrl) {
+    try {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const data = [new ClipboardItem({ "image/png": blob })];
+        await navigator.clipboard.write(data);
+        console.log('이미지가 클립보드에 복사되었습니다.');
+    } catch (error) {
+        console.error('이미지 복사 중 오류가 발생했습니다:', error);
+    }
+  }
 
   function showCategory(category) {
     const allContent = document.querySelectorAll('.notice-content');
