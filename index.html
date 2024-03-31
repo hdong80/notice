@@ -29,6 +29,11 @@
     border-radius: 10px;
     text-align: left;
     white-space: pre-wrap;
+    position: relative;
+  }
+  .notice-content img {
+    max-width: 100%;
+    margin-bottom: 10px;
   }
   .notice-content.weekly {
     background-color: #FFFACD; /* 매우 연한 노란색 */
@@ -54,6 +59,9 @@
     margin-left: 10px;
   }
   #print-button {
+    margin-top: 20px;
+  }
+  #copy-button {
     margin-top: 20px;
   }
   #category-buttons {
@@ -139,6 +147,7 @@
           return `<div class="notice-block">
                     <div class="notice-number">${index + 1}</div>
                     <div class="${className}">${content}</div>
+                    ${content.includes('<img') ? `<button class="download-button button">이미지 다운로드</button>` : ''}
                   </div>`;
         }).join('');
         document.getElementById('notice').innerHTML = noticeHtml;
@@ -184,6 +193,28 @@
     selection.removeAllRanges();
     alert('전체 내용이 클립보드에 복사되었습니다.');
   });
+
+  document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('download-button')) {
+      downloadImage(event.target);
+    }
+  });
+
+  function downloadImage(button) {
+    const noticeContent = button.parentElement.querySelector('.notice-content');
+    const image = noticeContent.querySelector('img');
+    if (image) {
+      const imageUrl = image.src;
+      const a = document.createElement('a');
+      a.href = imageUrl;
+      a.download = 'image.jpg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } else {
+      alert('이미지가 없습니다.');
+    }
+  }
 
   function showCategory(category) {
     const allContent = document.querySelectorAll('.notice-content');
