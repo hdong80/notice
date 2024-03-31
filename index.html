@@ -74,6 +74,15 @@
   #date-selection {
     margin-bottom: 20px;
   }
+  .button-group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  .button-group button {
+    flex: 1;
+    margin-right: 5px;
+  }
 
   @media screen and (max-width: 600px) {
     .notice-content img {
@@ -146,9 +155,9 @@
           }
           let imageButtons = '';
           if (row[1] && row[1].startsWith('http')) {
-            imageButtons = `<div>
+            imageButtons = `<div class="button-group">
                               <button class="view-image-button button" onclick="viewImage(this)">이미지 크게 보기</button>
-                              <a class="download-button button" onclick="downloadImage(this)" download>이미지 다운로드</a>
+                              <a href="${row[1]}" download="image.jpg"><button class="download-image-button button">이미지 다운로드</button></a>
                             </div>`;
           }
           return `<div class="notice-block">
@@ -220,22 +229,6 @@
     const image = noticeContent.querySelector('img');
     if (image) {
       window.open(image.src, '_blank');
-    } else {
-      alert('이미지가 없습니다.');
-    }
-  }
-
-  function downloadImage(button) {
-    const noticeContent = button.parentElement.parentElement;
-    const image = noticeContent.querySelector('img');
-    if (image) {
-      const imageUrl = image.src;
-      const a = document.createElement('a');
-      a.href = imageUrl;
-      a.download = 'image.jpg';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
     } else {
       alert('이미지가 없습니다.');
     }
