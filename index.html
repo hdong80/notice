@@ -125,9 +125,9 @@
   async function fetchSheetData(date) {
     let sheetName;
     if (date === 'yesterday') {
-        sheetName = 'Sheet2'; // 어제의 시트 이름으로 변경
+      sheetName = 'Sheet2'; // 어제의 시트 이름으로 변경
     } else {
-        sheetName = 'Sheet1'; // 오늘의 시트 이름
+      sheetName = 'Sheet1'; // 오늘의 시트 이름
     }
 
     const sheetId = '1wsg1cQgwqJ0qlILEt7KIeSutThwstAXlX2oHLBbYg8o'; // 시트 ID
@@ -138,7 +138,7 @@
     try {
       const response = await fetch(url);
       const data = await response.json();
-      
+
       if (data.values && data.values.length > 0) {
         const noticeHtml = data.values.map((row, index) => {
           const content = row[1] ? (row[1].startsWith('http') ? `<img src="${row[1]}" alt="이미지">` : row[1]) : '';
@@ -246,45 +246,22 @@
     const image = noticeContent.querySelector('img');
     if (image) {
       const imageUrl = image.src;
-      downloadImg(imageUrl);
+      const imageName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+      
+      // a 태그 생성
+      const link = document.createElement('a');
+      link.href = imageUrl; // 이미지의 URL을 href로 설정
+      link.download = imageName; // 다운로드 될 때의 파일 이름 설정
+      
+      // a 태그를 body에 임시로 추가하고 클릭 이벤트 발생
+      document.body.appendChild(link);
+      link.click(); // 클릭 이벤트 트리거
+      
+      // a 태그 제거
+      document.body.removeChild(link);
     } else {
       alert('이미지가 없습니다.');
     }
-  }
-
-  function downloadImg(imgSrc) {
-    var image = new Image();
-    image.crossOrigin = "anonymous";
-    image.src = imgSrc;
-    var fileName = image.src.split("/").pop();
-    image.onload = function() {
-      var canvas = document.createElement('canvas');
-      canvas.width = this.width;
-      canvas.height = this.height;
-      canvas.getContext('2d').drawImage(this, 0, 0);
-      if (typeof window.navigator.msSaveBlob !== 'undefined') {
-        window.navigator.msSaveBlob(dataURLtoBlob(canvas.toDataURL()), fileName);
-      } else {
-        var link = document.createElement('a');
-        link.href = canvas.toDataURL();
-        link.download = fileName;
-        link.click();
-      }
-    };
-  }
-
-  function dataURLtoBlob(dataurl) {
-    var arr = dataurl.split(','),
-      mime = arr[0].match(/:(.*?);/)[1],
-      bstr = atob(arr[1]),
-      n = bstr.length,
-      u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new Blob([u8arr], {
-      type: mime
-    });
   }
 </script>
 </body>
