@@ -35,14 +35,23 @@
     max-width: 100%;
     margin-bottom: 10px;
   }
-  .notice-content.weekly {
-    background-color: #FFFACD; /* 매우 연한 노란색 */
+  .notice-content img.clickable {
+    cursor: pointer;
   }
-  .notice-content.lookup {
-    background-color: #ADD8E6; /* 연한 파란색 */
+  .notice-content img.modal {
+    max-width: 90%;
+    max-height: 90%;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    display: none;
   }
-  .notice-content.closing {
-    background-color: #FFB6C1; /* 연한 분홍색 */
+  .notice-content img.modal.active {
+    display: block;
   }
   #date {
     margin-bottom: 20px;
@@ -133,7 +142,7 @@
       
       if (data.values && data.values.length > 0) {
         const noticeHtml = data.values.map((row, index) => {
-          const content = row[1] ? (row[1].startsWith('http') ? `<img src="${row[1]}" alt="이미지">` : row[1]) : '';
+          const content = row[1] ? (row[1].startsWith('http') ? `<img src="${row[1]}" alt="이미지" class="clickable">` : row[1]) : '';
           let className = 'notice-content';
           if (content.includes('(주간공지)')) {
             className += ' weekly';
@@ -147,7 +156,6 @@
           return `<div class="notice-block">
                     <div class="notice-number">${index + 1}</div>
                     <div class="${className}">${content}</div>
-                    ${content.includes('<img') ? `<button class="download-button button">이미지 다운로드</button>` : ''}
                   </div>`;
         }).join('');
         document.getElementById('notice').innerHTML = noticeHtml;
@@ -195,25 +203,22 @@
   });
 
   document.addEventListener('click', function(event) {
-    if (event.target.classList.contains('download-button')) {
-      downloadImage(event.target);
+    if (event.target.classList.contains('clickable')) {
+      showImage(event.target);
     }
   });
 
-  function downloadImage(button) {
-    const noticeContent = button.parentElement.querySelector('.notice-content');
-    const image = noticeContent.querySelector('img');
-    if (image) {
-      const imageUrl = image.src;
-      const a = document.createElement('a');
-      a.href = imageUrl;
-      a.download = 'image.jpg';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } else {
-      alert('이미지가 없습니다.');
-    }
+  function showImage(image) {
+    const modal = document.createElement('div');
+    modal.classList.add('modal');
+    modal.innerHTML = `<img src="${image.src}" alt="이미지" class="modal" onclick="hideImage(this)">`;
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden'; // 스크롤 금지
+  }
+
+  function hideImage(image) {
+    image.parentElement.remove();
+    document.body.style.overflow = 'auto'; // 스크롤 허용
   }
 
   function showCategory(category) {
