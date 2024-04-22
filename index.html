@@ -122,7 +122,7 @@
 <button id="copy-button" class="button">전체 내용 복사</button>
 
 <script>
-  async function fetchSheetData(date) {
+async function fetchSheetData(date) {
     let sheetName;
     if (date === 'yesterday') {
       sheetName = 'Sheet2'; // 어제의 시트 이름으로 변경
@@ -141,25 +141,10 @@
 
       if (data.values && data.values.length > 0) {
         const noticeHtml = data.values.map((row, index) => {
-          const content = row[1] ? (row[1].startsWith('http') ? `<img src="${row[1]}" alt="이미지">` : row[1]) : '';
-          let className = 'notice-content';
-          if (content.includes('(주간공지)')) {
-            className += ' weekly';
-          }
-          if (content.includes('(조회)')) {
-            className += ' lookup';
-          }
-          if (content.includes('(종례)')) {
-            className += ' closing';
-          }
-          const imageButtons = `
-            <div class="button-group">
-              <button class="button" onclick="viewImage(this)">이미지 크게 보기</button>
-              <button class="button" onclick="downloadImage(this)">이미지 다운로드</button>
-            </div>`;
+          const content = row[1] ? parseContent(row[1]) : '';
           return `<div class="notice-block">
                     <div class="notice-number">${index + 1}</div>
-                    <div class="${className}">${content}${content.includes('<img') ? imageButtons : ''}</div>
+                    <div class="${content.className}">${content.html}</div>
                   </div>`;
         }).join('');
         document.getElementById('notice').innerHTML = noticeHtml;
@@ -172,97 +157,127 @@
       console.error('Error fetching data:', error);
       document.getElementById('notice').innerHTML = '데이터를 가져오는 중 오류가 발생했습니다.';
     }
+}
+
+function parseContent(content) {
+  const isWeekly = content.includes('(주간공지)');
+  const isLookup = content.includes('(조회)');
+  const isClosing = content.includes('(종례)');
+  const isPDF = content.endsWith('.pdf');
+
+  let className = 'notice-content';
+  if (isWeekly) {
+    className += ' weekly';
+  }
+  if (isLookup) {
+    className += ' lookup';
+  }
+  if (isClosing) {
+    className += ' closing';
   }
 
-  document.getElementById('date-picker').addEventListener('change', function() {
-    const selectedDate = this.value;
-    fetchSheetData(selectedDate);
-  });
-
-  fetchSheetData('today');
-
-  document.getElementById('print-button').addEventListener('click', function() {
-    window.print();
-  });
-
-  document.getElementById('copy-button').addEventListener('click', function() {
-    copyContent();
-  });
-
-  async function copyContent() {
-    let finalText = '';
-    const noticeBlocks = document.querySelectorAll('.notice-block');
-    noticeBlocks.forEach(block => {
-      const noticeContent = block.querySelector('.notice-content');
-      const image = noticeContent.querySelector('img');
-      const textContent = noticeContent.textContent.trim();
-
-      let contentText = textContent;
-      if (image) {
-        const imageUrl = image.src;
-        contentText += `\n이미지 URL: ${imageUrl}`; // 이미지가 있을 경우, 텍스트 내용 끝에 이미지 URL을 추가합니다.
-      }
-
-      finalText += contentText + '\n\n'; // 각 공지사항 사이에 두 줄 공백을 추가합니다.
-    });
-
-    const textarea = document.createElement('textarea');
-    textarea.value = finalText;
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
-
-    alert('전체 내용이 클립보드에 복사되었습니다.');
+  let html = '';
+  if (isPDF) {
+    html = `<a href="${content}" target="_blank">${content}</a>`;
+  } else if (content.startsWith('http')) {
+    html = `<img src="${content}" alt="이미지">`;
+  } else {
+    html = content;
   }
 
-  function showCategory(category) {
-    const allContent = document.querySelectorAll('.notice-content');
-    allContent.forEach(content => {
-      if (category === 'all') {
-        content.style.display = 'block';
-      } else if (category === 'weekly') {
-        content.style.display = content.classList.contains('weekly') ? 'block' : 'none';
-      } else if (category === 'lookup') {
-        content.style.display = content.classList.contains('lookup') || content.classList.contains('weekly') ? 'block' : 'none';
-      } else if (category === 'closing') {
-        content.style.display = content.classList.contains('closing') || content.classList.contains('weekly') ? 'block' : 'none';
-      }
-    });
-  }
+  return { className, html };
+}
 
-  function viewImage(button) {
-    const noticeContent = button.parentElement.parentElement;
+document.getElementById('date-picker').addEventListener('change', function() {
+  const selectedDate = this.value;
+  fetchSheetData(selectedDate);
+});
+
+fetchSheetData('today');
+
+document.getElementById('print-button').addEventListener('click', function() {
+  window.print();
+});
+
+document.getElementById('copy-button').addEventListener('click', function() {
+  copyContent();
+});
+
+async function copyContent() {
+  let finalText = '';
+  const noticeBlocks = document.querySelectorAll('.notice-block');
+  noticeBlocks.forEach(block => {
+    const noticeContent = block.querySelector('.notice-content');
     const image = noticeContent.querySelector('img');
-    if (image) {
-      window.open(image.src, '_blank');
-    } else {
-      alert('이미지가 없습니다.');
-    }
-  }
+    const textContent = noticeContent.textContent.trim();
 
-  function downloadImage(button) {
-    const noticeContent = button.parentElement.parentElement;
-    const image = noticeContent.querySelector('img');
+    let contentText = textContent;
     if (image) {
       const imageUrl = image.src;
-      const imageName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
-      
-      // a 태그 생성
-      const link = document.createElement('a');
-      link.href = imageUrl; // 이미지의 URL을 href로 설정
-      link.download = imageName; // 다운로드 될 때의 파일 이름 설정
-      
-      // a 태그를 body에 임시로 추가하고 클릭 이벤트 발생
-      document.body.appendChild(link);
-      link.click(); // 클릭 이벤트 트리거
-      
-      // a 태그 제거
-      document.body.removeChild(link);
-    } else {
-      alert('이미지가 없습니다.');
+      contentText += `\n이미지 URL: ${imageUrl}`; // 이미지가 있을 경우, 텍스트 내용 끝에 이미지 URL을 추가합니다.
     }
+
+    finalText += contentText + '\n\n'; // 각 공지사항 사이에 두 줄 공백을 추가합니다.
+  });
+
+  const textarea = document.createElement('textarea');
+  textarea.value = finalText;
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+
+  alert('전체 내용이 클립보드에 복사되었습니다.');
+}
+
+function showCategory(category) {
+  const allContent = document.querySelectorAll('.notice-content');
+  allContent.forEach(content => {
+    if (category === 'all') {
+      content.style.display = 'block';
+    } else if (category === 'weekly') {
+      content.style.display = content.classList.contains('weekly') ? 'block' : 'none';
+    } else if (category === 'lookup') {
+      content.style.display = content.classList.contains('lookup') || content.classList.contains('weekly') ? 'block' : 'none';
+    } else if (category === 'closing') {
+      content.style.display = content.classList.contains('closing') || content.classList.contains('weekly') ? 'block' : 'none';
+    }
+  });
+}
+
+function viewImage(button) {
+  const noticeContent = button.parentElement.parentElement;
+  const image = noticeContent.querySelector('img');
+  if (image) {
+    window.open(image.src, '_blank');
+  } else {
+    alert('이미지가 없습니다.');
   }
+}
+
+function downloadImage(button) {
+  const noticeContent = button.parentElement.parentElement;
+  const image = noticeContent.querySelector('img');
+  if (image) {
+    const imageUrl = image.src;
+    const imageName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+    
+    // a 태그 생성
+    const link = document.createElement('a');
+    link.href = imageUrl; // 이미지의 URL을 href로 설정
+    link.download = imageName; // 다운로드 될 때의 파일 이름 설정
+    
+    // a 태그를 body에 임시로 추가하고 클릭 이벤트 발생
+    document.body.appendChild(link);
+    link.click(); // 클릭 이벤트 트리거
+    
+    // a 태그 제거
+    document.body.removeChild(link);
+  } else {
+    alert('이미지가 없습니다.');
+  }
+}
+
 </script>
 </body>
 </html>
