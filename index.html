@@ -165,7 +165,7 @@
 
     // PDF 링크인 경우 처리
     if (content.startsWith('https://poongmoon.riroschool.kr/pdfjs/web/viewer.html')) {
-      html = `<div class="pdf-viewer-container"><iframe class="pdf-viewer" src="${content}"></iframe></div>`;
+      html = `<div class="pdf-viewer-container"><iframe class="pdf-viewer" src="${content}&zoom=page-width"></iframe></div>`;
     }
 
     // 이미지 링크인 경우 처리
