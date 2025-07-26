@@ -1,241 +1,358 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2학년 오늘의 공지사항</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    text-align: center;
-  }
-  .notice-block {
-    margin-bottom: 10px;
-    display: flex;
-    align-items: flex-start;
-  }
-  .notice-number {
-    margin-right: 10px;
-    padding: 10px;
-    border: 2px solid #000;
-    border-radius: 10px;
-    font-weight: bold;
-  }
-  .notice-content {
-    flex: 1;
-    padding: 20px;
-    border: 2px solid #FFD700;
-    border-radius: 10px;
-    text-align: left;
-    white-space: pre-wrap;
-    position: relative;
-  }
-  .notice-content img {
-    max-width: 100%;
-    margin-bottom: 10px;
-  }
-  .notice-content.weekly {
-    background-color: #FFFACD; /* 매우 연한 노란색 */
-  }
-  .notice-content.lookup {
-    background-color: #ADD8E6; /* 연한 파란색 */
-  }
-  .notice-content.closing {
-    background-color: #FFB6C1; /* 연한 분홍색 */
-  }
-  #date {
-    margin-bottom: 20px;
-  }
-  .button {
-    padding: 5px 10px;
-    font-size: 14px;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    margin-top: 5px;
-  }
-  #print-button {
-    margin-top: 20px;
-  }
-  #copy-button {
-    margin-top: 20px;
-  }
-  #category-buttons {
-    margin-bottom: 20px;
-    text-align: center;
-  }
-  #category-buttons button {
-    margin-right: 10px;
-  }
-  #date-selection {
-    margin-bottom: 20px;
-  }
-  .button-group {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-  }
-  .button-group button {
-    flex: 1;
-    margin-right: 5px;
-  }
-  .pdf-viewer-container {
-    margin-top: 20px;
-  }
-  .pdf-viewer {
-    width: 100%; /* iframe의 너비를 조정합니다. */
-    height: 800px; /* iframe의 높이를 조정합니다. */
-    border: none; /* iframe의 테두리를 제거합니다. */
-  }
-</style>
-</head>
-<body>
-<h1>2학년 오늘의 공지사항</h1>
-<div id="date-selection">
-  <label for="date-picker">날짜 선택:</label>
-  <select id="date-picker">
-    <option value="today">오늘</option>
-    <option value="yesterday">어제</option>
-  </select>
+import React, { useState, useEffect } from ‘react’;
+import { Search, Download, Edit2, Trash2, Plus, Save, X } from ‘lucide-react’;
+
+const CongratulatoryMoneySystem = () => {
+const [records, setRecords] = useState([]);
+const [name, setName] = useState(’’);
+const [selectedAmount, setSelectedAmount] = useState(’’);
+const [selectedTickets, setSelectedTickets] = useState(’’);
+const [searchTerm, setSearchTerm] = useState(’’);
+const [editingId, setEditingId] = useState(null);
+const [editData, setEditData] = useState({});
+
+const amounts = [30000, 50000, 70000, 100000, 150000, 200000, 300000, 500000, 700000, 1000000];
+const ticketOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+// 로컬 스토리지에서 데이터 로드
+useEffect(() => {
+const savedRecords = localStorage.getItem(‘congratulatoryRecords’);
+if (savedRecords) {
+setRecords(JSON.parse(savedRecords));
+}
+}, []);
+
+// 데이터 저장
+const saveToStorage = (newRecords) => {
+localStorage.setItem(‘congratulatoryRecords’, JSON.stringify(newRecords));
+};
+
+// 새 기록 추가
+const addRecord = () => {
+if (!name.trim() || !selectedAmount || !selectedTickets) {
+alert(‘모든 항목을 입력해주세요.’);
+return;
+}
+
+```
+const newRecord = {
+  id: Date.now(),
+  순번: records.length + 1,
+  이름: name.trim(),
+  축의금: parseInt(selectedAmount),
+  식권수: parseInt(selectedTickets),
+  입력시간: new Date().toLocaleString('ko-KR')
+};
+
+const newRecords = [...records, newRecord];
+setRecords(newRecords);
+saveToStorage(newRecords);
+
+// 입력 초기화
+setName('');
+setSelectedAmount('');
+setSelectedTickets('');
+```
+
+};
+
+// 기록 삭제
+const deleteRecord = (id) => {
+if (window.confirm(‘정말 삭제하시겠습니까?’)) {
+const newRecords = records.filter(record => record.id !== id)
+.map((record, index) => ({ …record, 순번: index + 1 }));
+setRecords(newRecords);
+saveToStorage(newRecords);
+}
+};
+
+// 수정 시작
+const startEdit = (record) => {
+setEditingId(record.id);
+setEditData({
+이름: record.이름,
+축의금: record.축의금,
+식권수: record.식권수
+});
+};
+
+// 수정 저장
+const saveEdit = () => {
+const newRecords = records.map(record =>
+record.id === editingId
+? { …record, …editData }
+: record
+);
+setRecords(newRecords);
+saveToStorage(newRecords);
+setEditingId(null);
+setEditData({});
+};
+
+// 수정 취소
+const cancelEdit = () => {
+setEditingId(null);
+setEditData({});
+};
+
+// 검색된 기록들
+const filteredRecords = records.filter(record =>
+record.이름.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
+// 총계 계산
+const totalAmount = records.reduce((sum, record) => sum + record.축의금, 0);
+const totalTickets = records.reduce((sum, record) => sum + record.식권수, 0);
+
+// 엑셀 다운로드
+const downloadExcel = () => {
+const csvContent = [
+[‘순번’, ‘이름’, ‘축의금’, ‘식권수’, ‘입력시간’],
+…records.map(record => [
+record.순번,
+record.이름,
+record.축의금,
+record.식권수,
+record.입력시간
+]),
+[’’, ‘’, ‘’, ‘’, ‘’],
+[‘총계’, ‘’, totalAmount, totalTickets, ‘’]
+].map(row => row.join(’,’)).join(’\n’);
+
+```
+const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+const link = document.createElement('a');
+const url = URL.createObjectURL(blob);
+link.setAttribute('href', url);
+link.setAttribute('download', `축의금_기록_${new Date().toISOString().split('T')[0]}.csv`);
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+```
+
+};
+
+return (
+<div className="max-w-6xl mx-auto p-6 bg-gray-50 min-h-screen">
+<div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+<h1 className="text-3xl font-bold text-center text-gray-800 mb-8">결혼식 축의금 입력 시스템</h1>
+
+```
+    {/* 입력 섹션 */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* 이름 입력 */}
+      <div>
+        <label className="block text-lg font-medium text-gray-700 mb-3">이름</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-lg"
+          placeholder="이름을 입력하세요"
+        />
+      </div>
+
+      {/* 축의금 선택 */}
+      <div>
+        <label className="block text-lg font-medium text-gray-700 mb-3">축의금 금액</label>
+        <div className="grid grid-cols-2 gap-2">
+          {amounts.map(amount => (
+            <button
+              key={amount}
+              onClick={() => setSelectedAmount(amount)}
+              className={`p-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                selectedAmount === amount
+                  ? 'bg-blue-500 text-white border-blue-500'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
+              }`}
+            >
+              {amount.toLocaleString()}원
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 식권 수 선택 */}
+      <div>
+        <label className="block text-lg font-medium text-gray-700 mb-3">식권 수</label>
+        <div className="grid grid-cols-5 gap-2">
+          {ticketOptions.map(tickets => (
+            <button
+              key={tickets}
+              onClick={() => setSelectedTickets(tickets)}
+              className={`p-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                selectedTickets === tickets
+                  ? 'bg-green-500 text-white border-green-500'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-green-300'
+              }`}
+            >
+              {tickets}장
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* 추가 버튼 */}
+    <div className="text-center mb-8">
+      <button
+        onClick={addRecord}
+        className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
+      >
+        <Plus size={20} />
+        기록 추가
+      </button>
+    </div>
+
+    {/* 검색 및 다운로드 */}
+    <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+      <div className="relative flex-1 max-w-md">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+          placeholder="이름으로 검색..."
+        />
+      </div>
+      <button
+        onClick={downloadExcel}
+        className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+      >
+        <Download size={18} />
+        엑셀 다운로드
+      </button>
+    </div>
+
+    {/* 총계 */}
+    <div className="bg-blue-50 p-4 rounded-lg mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+        <div>
+          <p className="text-lg font-medium text-gray-700">총 축의금</p>
+          <p className="text-2xl font-bold text-blue-600">{totalAmount.toLocaleString()}원</p>
+        </div>
+        <div>
+          <p className="text-lg font-medium text-gray-700">총 식권 수</p>
+          <p className="text-2xl font-bold text-green-600">{totalTickets}장</p>
+        </div>
+      </div>
+    </div>
+
+    {/* 기록 테이블 */}
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse border border-gray-300">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border border-gray-300 p-3 text-left">순번</th>
+            <th className="border border-gray-300 p-3 text-left">이름</th>
+            <th className="border border-gray-300 p-3 text-right">축의금</th>
+            <th className="border border-gray-300 p-3 text-right">식권 수</th>
+            <th className="border border-gray-300 p-3 text-left">입력 시간</th>
+            <th className="border border-gray-300 p-3 text-center">작업</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredRecords.map(record => (
+            <tr key={record.id} className="hover:bg-gray-50">
+              <td className="border border-gray-300 p-3">{record.순번}</td>
+              <td className="border border-gray-300 p-3">
+                {editingId === record.id ? (
+                  <input
+                    type="text"
+                    value={editData.이름}
+                    onChange={(e) => setEditData({...editData, 이름: e.target.value})}
+                    className="w-full p-1 border border-gray-300 rounded"
+                  />
+                ) : (
+                  record.이름
+                )}
+              </td>
+              <td className="border border-gray-300 p-3 text-right">
+                {editingId === record.id ? (
+                  <select
+                    value={editData.축의금}
+                    onChange={(e) => setEditData({...editData, 축의금: parseInt(e.target.value)})}
+                    className="w-full p-1 border border-gray-300 rounded"
+                  >
+                    {amounts.map(amount => (
+                      <option key={amount} value={amount}>{amount.toLocaleString()}원</option>
+                    ))}
+                  </select>
+                ) : (
+                  `${record.축의금.toLocaleString()}원`
+                )}
+              </td>
+              <td className="border border-gray-300 p-3 text-right">
+                {editingId === record.id ? (
+                  <select
+                    value={editData.식권수}
+                    onChange={(e) => setEditData({...editData, 식권수: parseInt(e.target.value)})}
+                    className="w-full p-1 border border-gray-300 rounded"
+                  >
+                    {ticketOptions.map(tickets => (
+                      <option key={tickets} value={tickets}>{tickets}장</option>
+                    ))}
+                  </select>
+                ) : (
+                  `${record.식권수}장`
+                )}
+              </td>
+              <td className="border border-gray-300 p-3 text-sm">{record.입력시간}</td>
+              <td className="border border-gray-300 p-3">
+                <div className="flex justify-center gap-2">
+                  {editingId === record.id ? (
+                    <>
+                      <button
+                        onClick={saveEdit}
+                        className="text-green-600 hover:text-green-800 p-1"
+                        title="저장"
+                      >
+                        <Save size={16} />
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="text-gray-600 hover:text-gray-800 p-1"
+                        title="취소"
+                      >
+                        <X size={16} />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => startEdit(record)}
+                        className="text-blue-600 hover:text-blue-800 p-1"
+                        title="수정"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => deleteRecord(record.id)}
+                        className="text-red-600 hover:text-red-800 p-1"
+                        title="삭제"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    {records.length === 0 && (
+      <div className="text-center py-8 text-gray-500">
+        아직 등록된 기록이 없습니다.
+      </div>
+    )}
+  </div>
 </div>
-<div id="category-buttons">
-  <button onclick="showCategory('all')">전체 다 보기</button>
-  <button onclick="showCategory('lookup')">조회만 보기</button>
-  <button onclick="showCategory('closing')">종례만 보기</button>
-</div>
-<p id="date"></p>
-<div id="notice"></div>
-<button id="print-button" class="button">출력</button>
-<button id="copy-button" class="button">전체 내용 복사</button>
+```
 
-<script>
-  async function fetchSheetData(date) {
-    let sheetName;
-    if (date === 'yesterday') {
-      sheetName = 'Sheet2'; // 어제의 시트 이름으로 변경
-    } else {
-      sheetName = 'Sheet1'; // 오늘의 시트 이름
-    }
+);
+};
 
-    const sheetId = '1wsg1cQgwqJ0qlILEt7KIeSutThwstAXlX2oHLBbYg8o'; // 시트 ID
-    const apiKey = 'AIzaSyDrClgUbT-0cFoYe4W81dyxikZVbjVlcT8'; // Google Sheets API 키
-    const range = `${sheetName}!A:B`;
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
-
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data.values && data.values.length > 0) {
-        const noticeHtml = data.values.map((row, index) => {
-          const content = row[1] ? parseContent(row[1]) : '';
-          return `<div class="notice-block">
-                    <div class="notice-number">${index + 1}</div>
-                    <div class="${content.className}">${content.html}</div>
-                  </div>`;
-        }).join('');
-        document.getElementById('notice').innerHTML = noticeHtml;
-      } else {
-        document.getElementById('notice').innerHTML = '해당 날짜에 공지사항이 없습니다.';
-      }
-
-      document.getElementById('date').textContent = `${date === 'today' ? '오늘' : '어제'}의 공지사항`;
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      document.getElementById('notice').innerHTML = '데이터를 가져오는 중 오류가 발생했습니다.';
-    }
-  }
-
-  function parseContent(content) {
-    let className = 'notice-content';
-    let html = content;
-
-    if (content.includes('(주간공지)')) {
-      className += ' weekly';
-    }
-    if (content.includes('(조회)')) {
-      className += ' lookup';
-    }
-    if (content.includes('(종례)')) {
-      className += ' closing';
-    }
-
-    // PDF 링크인 경우 처리
-    if (content.startsWith('https://poongmoon.riroschool.kr/pdfjs/web/viewer.html')) {
-      html = `<div class="pdf-viewer-container"><iframe class="pdf-viewer" src="${content}&zoom=page-width"></iframe></div>`;
-    }
-
-    // 이미지 링크인 경우 처리
-    if (content.match(/\.(jpeg|jpg|gif|png)$/) != null) {
-      html = `<img src="${content}" alt="이미지">`;
-    }
-
-    return { className, html };
-  }
-
-  document.getElementById('date-picker').addEventListener('change', function() {
-    const selectedDate = this.value;
-    fetchSheetData(selectedDate);
-  });
-
-  fetchSheetData('today');
-
-  document.getElementById('print-button').addEventListener('click', function() {
-    window.print();
-  });
-
-  document.getElementById('copy-button').addEventListener('click', function() {
-    copyContent();
-  });
-
-  async function copyContent() {
-    let finalText = '';
-    const noticeBlocks = document.querySelectorAll('.notice-block');
-    noticeBlocks.forEach(block => {
-      const noticeContent = block.querySelector('.notice-content');
-      const image = noticeContent.querySelector('img');
-      const pdfViewer = noticeContent.querySelector('.pdf-viewer');
-      const textContent = noticeContent.textContent.trim();
-
-      let contentText = textContent;
-      if (image) {
-        const imageUrl = image.src;
-        contentText += `\n이미지 URL: ${imageUrl}`;
-      } else if (pdfViewer) {
-        const pdfUrl = pdfViewer.getAttribute('src');
-        contentText += `\nPDF 링크: ${pdfUrl}`;
-      }
-
-      finalText += contentText + '\n\n';
-    });
-
-    const textarea = document.createElement('textarea');
-    textarea.value = finalText;
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
-
-    alert('전체 내용이 클립보드에 복사되었습니다.');
-  }
-
-  function showCategory(category) {
-    const allContent = document.querySelectorAll('.notice-content');
-    allContent.forEach(content => {
-      if (category === 'all') {
-        content.style.display = 'block';
-      } else if (category === 'weekly') {
-        content.style.display = content.classList.contains('weekly') ? 'block' : 'none';
-      } else if (category === 'lookup') {
-        content.style.display = content.classList.contains('lookup') || content.classList.contains('weekly') ? 'block' : 'none';
-      } else if (category === 'closing') {
-        content.style.display = content.classList.contains('closing') || content.classList.contains('weekly') ? 'block' : 'none';
-      }
-    });
-  }
-</script>
-</body>
-</html>
+export default CongratulatoryMoneySystem;
